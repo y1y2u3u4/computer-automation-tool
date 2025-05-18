@@ -171,6 +171,22 @@ class VideoPublisher:
             logger.error(f"加载Excel数据失败: {e}")
             logger.error(traceback.format_exc())
             return False
+
+    def refresh_window(self, delay=1, retries=3):
+        """刷新当前窗口对象，确保操作焦点正确"""
+        for _ in range(retries):
+            try:
+                time.sleep(delay)
+                active = Desktop(backend="uia").get_active()
+                if active:
+                    self.window = active
+                    self.window.set_focus()
+                    logger.info(f"已切换到活动窗口: '{self.window.window_text()}'")
+                    return True
+            except Exception as e:
+                logger.warning(f"刷新窗口失败: {e}")
+        logger.warning("无法刷新到新的活动窗口，继续使用当前窗口")
+        return False
     
     def click_publish_button(self):
         """点击发布按钮"""
@@ -284,6 +300,7 @@ class VideoPublisher:
                     logger.info("通过精确文本内容找到并点击了新增发布按钮")
                     time.sleep(LOAD_DELAY)
                     self.take_screenshot("after_new_publish_button")
+                    self.refresh_window()
                     return True
                 else:
                     logger.warning("未找到包含'新增发布'文本的控件，尝试其他方法")
@@ -301,6 +318,7 @@ class VideoPublisher:
                     logger.info("点击了提示文本中的新增发布任务")
                     time.sleep(LOAD_DELAY)
                     self.take_screenshot("after_prompt_text")
+                    self.refresh_window()
                     return True
                 else:
                     logger.warning("未找到提示文本")
@@ -320,6 +338,7 @@ class VideoPublisher:
                             logger.info(f"通过关键词 '{keyword}' 找到并点击了按钮")
                             time.sleep(LOAD_DELAY)
                             self.take_screenshot(f"after_{keyword}_button")
+                            self.refresh_window()
                             return True
                     except Exception as e:
                         logger.warning(f"使用关键词 '{keyword}' 查找按钮失败: {e}")
@@ -341,6 +360,7 @@ class VideoPublisher:
                             logger.info(f"点击了第{i+1}个控件，文本为: '{text}'")
                             time.sleep(LOAD_DELAY)
                             self.take_screenshot(f"after_control_{i+1}")
+                            self.refresh_window()
                             return True
                     except Exception:
                         # 忽略个别控件的错误
@@ -359,6 +379,7 @@ class VideoPublisher:
                 logger.info("尝试使用Ctrl+N快捷键创建新发布")
                 time.sleep(LOAD_DELAY)
                 self.take_screenshot("after_new_shortcut")
+                self.refresh_window()
                 return True
             except Exception as e:
                 logger.warning(f"使用快捷键创建新发布失败: {e}")
@@ -373,6 +394,8 @@ class VideoPublisher:
     def click_video_button(self):
         """点击视频按钮"""
         try:
+            # 确保当前窗口为最新活动窗口
+            self.refresh_window()
             # 先截图查看当前界面
             self.take_screenshot("before_video_button")
             
