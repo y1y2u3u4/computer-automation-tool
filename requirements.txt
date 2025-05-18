@@ -1,0 +1,9 @@
+pyautogui>=0.9.53
+pywinauto>=0.6.8
+pyperclip>=1.8.2
+Pillow>=8.0.0
+pytesseract>=0.3.8
+PyGetWindow>=0.0.9
+easyocr>=1.4.1
+numpy>=1.19.5
+ocrmypdf>=12.0.0
